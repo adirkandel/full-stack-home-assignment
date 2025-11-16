@@ -5,9 +5,9 @@ A full-stack Task Management application built with React, TypeScript, Node.js, 
 ## Overview
 
 This is a Task Management application that allows users to:
+
 - Register and authenticate
 - Create and manage tasks
-- Organize tasks into projects
 - Add comments to tasks
 - Assign tasks to team members
 - Tag tasks for better organization
@@ -15,6 +15,7 @@ This is a Task Management application that allows users to:
 ## Tech Stack
 
 ### Frontend
+
 - React 18
 - TypeScript
 - Vite
@@ -23,6 +24,7 @@ This is a Task Management application that allows users to:
 - Fetch API
 
 ### Backend
+
 - Node.js
 - Express
 - TypeScript
@@ -34,6 +36,7 @@ This is a Task Management application that allows users to:
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
+
 - Node.js (v18 or higher)
 - npm or yarn
 - Git
@@ -85,6 +88,7 @@ npm run dev
 ```
 
 **Note**: The `db:setup` script will:
+
 1. Start the PostgreSQL Docker container
 2. Wait for the database to be ready
 3. Generate Prisma client
@@ -137,21 +141,20 @@ full-stack-home-assignment/
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register a new user
 - `POST /api/auth/login` - Login user
 
 ### Tasks
+
 - `GET /api/tasks` - Get all tasks (with optional filters)
 - `GET /api/tasks/:id` - Get task by ID
 - `POST /api/tasks` - Create a new task
 - `PUT /api/tasks/:id` - Update a task
 - `DELETE /api/tasks/:id` - Delete a task
 
-### Projects
-- `GET /api/projects` - Get all projects
-- `POST /api/projects` - Create a new project
-
 ### Comments
+
 - `GET /api/comments?taskId=:id` - Get comments for a task
 - `POST /api/comments` - Create a comment
 - `DELETE /api/comments/:id` - Delete a comment
@@ -159,6 +162,7 @@ full-stack-home-assignment/
 ## Default Test Users
 
 After seeding, you can login with:
+
 - Email: `john@example.com`, Password: `password123`
 - Email: `jane@example.com`, Password: `password123`
 - Email: `bob@example.com`, Password: `password123`
@@ -166,11 +170,13 @@ After seeding, you can login with:
 ## Development
 
 ### Backend
+
 - Development: `npm run dev` (uses tsx for hot reload)
 - Build: `npm run build`
 - Start: `npm start`
 
 ### Frontend
+
 - Development: `npm run dev` (Vite dev server)
 - Build: `npm run build`
 - Preview: `npm run preview`
@@ -189,6 +195,7 @@ The application uses PostgreSQL running in a Docker container. The database is a
 ### Database Connection
 
 Default connection details (from docker-compose.yml):
+
 - Host: `localhost`
 - Port: `5432`
 - Database: `taskmanager`
@@ -206,6 +213,7 @@ Connection string: `postgresql://taskmanager:taskmanager123@localhost:5432/taskm
 ## Troubleshooting
 
 **Database issues:**
+
 - Ensure Docker is running: `docker ps`
 - Ensure PostgreSQL container is up: `npm run db:docker:up`
 - Check container logs: `docker logs task-manager-db`
@@ -213,10 +221,11 @@ Connection string: `postgresql://taskmanager:taskmanager123@localhost:5432/taskm
 - Ensure Prisma client is generated: `npm run db:generate`
 
 **Port conflicts:**
-- Backend default: 5000 (change in `.env`)
-- Frontend default: 3000 (change in `vite.config.ts`)
+
+- Backend default: 3000 (change in `.env`)
+- Frontend default: 5173 (change in `vite.config.ts`)
 
 **Module not found errors:**
+
 - Run `npm install` in both frontend and backend directories
 - Ensure Prisma client is generated in backend
-
