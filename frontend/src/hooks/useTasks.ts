@@ -12,7 +12,7 @@ export const useTasks = (filters?: any) => {
   const fetchTasks = async () => {
     setLoading(true);
     const queryParams = new URLSearchParams(filters || {}).toString();
-    const data = await api.get(`/tasks?${queryParams}`);
+    const data = await api.get<any[]>(`/tasks?${queryParams}`);
     setTasks(data);
     setLoading(false);
   };

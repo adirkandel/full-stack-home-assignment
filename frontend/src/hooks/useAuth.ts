@@ -18,14 +18,14 @@ export const useAuth = () => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const data = await api.post('/auth/login', { email, password });
+    const data = await api.post<any>('/auth/login', { email, password });
     localStorage.setItem('token', data.token);
     setUser(data.user);
     return data;
   };
 
   const register = async (userData: any) => {
-    const data = await api.post('/auth/register', userData);
+    const data = await api.post<any>('/auth/register', userData);
     localStorage.setItem('token', data.token);
     setUser(data.user);
     return data;

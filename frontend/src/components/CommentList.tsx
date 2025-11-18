@@ -10,7 +10,7 @@ export const CommentList = ({ taskId }: { taskId: string }) => {
   }, [taskId]);
 
   const fetchComments = async () => {
-    const data = await api.get(`/comments?taskId=${taskId}`);
+    const data = await api.get<any[]>(`/comments?taskId=${taskId}`);
     setComments(data);
     setLoading(false);
   };

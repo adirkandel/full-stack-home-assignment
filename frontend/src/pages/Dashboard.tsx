@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 
 export const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
-  const [filters, setFilters] = useState({});
+  const [filters] = useState({});
   const { createTask } = useTasks();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
