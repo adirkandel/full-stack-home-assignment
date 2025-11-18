@@ -30,3 +30,35 @@ export interface Comment {
 
 export type ApiResponse = any;
 
+export interface ApiError {
+  message: string;
+  code?: string;
+  statusCode?: number;
+}
+
+// ========== Auth Types ==========
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  username: string;
+  name?: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
+
+export interface RegisterResponse {
+  token: string;
+  user: User;
+}
+
+export interface AuthMeResponse {
+  user: User;
+}
