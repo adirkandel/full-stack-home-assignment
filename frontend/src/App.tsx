@@ -3,11 +3,11 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { useAuth } from './hooks/useAuth';
+import { useAuth, AuthProvider } from './hooks/useAuth';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
-console.log('AppRoutes - user:', user, 'loading:', loading); 
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -37,9 +37,11 @@ console.log('AppRoutes - user:', user, 'loading:', loading);
 function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

@@ -14,17 +14,11 @@ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsLoading(true);
   setError('');
-  
-  console.log('1. Starting login');
-  
+
   try {
-    const result = await login(email, password);
-    console.log('2. Login success:', result);
-    console.log('3. Calling navigate');
+    await login(email, password);
     navigate('/dashboard', { replace: true });
-    console.log('4. Navigate called');
   } catch (err: any) {
-    console.error('Login error:', err);
     setError(err.message || 'Login failed');
   } finally {
     setIsLoading(false);
