@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useTasks } from '../hooks/useTasks';
 
-export const TaskList = ({ filters }: any) => {
-  const { tasks, loading, deleteTask, updateTask } = useTasks(filters);
+export const TaskList = ({ tasks, loading, deleteTask, updateTask }: any) => {
+  
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<any>({});
 
