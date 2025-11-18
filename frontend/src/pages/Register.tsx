@@ -9,6 +9,8 @@ export const Register = () => {
     password: '',
     name: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -21,8 +23,17 @@ export const Register = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    await register(formData);
-    navigate('/dashboard');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await register(formData);
+      navigate('/dashboard', { replace: true });
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -72,10 +83,12 @@ export const Register = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            Register
+            {isLoading ? 'Registering...' : 'Register'}
           </button>
+          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </form>
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
