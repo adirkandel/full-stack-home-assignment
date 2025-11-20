@@ -33,9 +33,15 @@ export const register = async (req: AuthRequest, res: Response) => {
     },
   });
 
+  // validate that JWT_SECRET is defined
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET is not defined');
+  }
+
   const token = jwt.sign(
     { userId: user.id },
-    process.env.JWT_SECRET || 'fallback-secret',
+    jwtSecret,
     { expiresIn: '7d' }
   );
 
