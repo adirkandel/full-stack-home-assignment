@@ -10,15 +10,35 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
 
   let tasks;
   if (search) {
-    const query = `SELECT * FROM Task WHERE userId = '${userId}' AND (title LIKE '%${search}%' OR description LIKE '%${search}%')`;
-    tasks = await prisma.$queryRawUnsafe(query);
-  } else {
-    tasks = await prisma.task.findMany({
-      where: {
-        userId,
-        ...(status && { status: status as string }),
-      },
-    });
+if (search) {
+  tasks = await prisma.task.findMany({
+    where: {
+      userId,
+      ...(status && { status: status as string }),
+      OR: [
+        {
+          title: {
+            contains: search as string,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: search as string,
+            mode: 'insensitive',
+          },
+        },
+      ],
+    },
+  });
+} else {
+  tasks = await prisma.task.findMany({
+    where: {
+      userId,
+      ...(status && { status: status as string }),
+    },
+  });
+}
 
     for (const task of tasks) {
       const user = await prisma.user.findUnique({ where: { id: task.userId } });
@@ -73,7 +93,21 @@ export const createTask = async (req: AuthRequest, res: Response) => {
 export const updateTask = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
     const { title, description, status, priority } = req.body;
+
+    // Verify task ownership before update
+    const existingTask = await prisma.task.findUnique({
+      where: { id },
+    });
+
+    if (!existingTask) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    if (existingTask.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not have permission to update this task' });
+    }
 
     const task = await prisma.task.update({
       where: { id },
@@ -95,6 +129,20 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
 export const deleteTask = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
+
+    // Verify task ownership before deletion
+     const existingTask = await prisma.task.findUnique({
+      where: { id },
+    });
+
+    if (!existingTask) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    if (existingTask.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this task' });
+    }
 
     await prisma.task.delete({
       where: { id },
@@ -110,6 +158,7 @@ export const deleteTask = async (req: AuthRequest, res: Response) => {
 export const getTaskById = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
     const task = await prisma.task.findUnique({
       where: { id },
@@ -154,6 +203,14 @@ export const getTaskById = async (req: AuthRequest, res: Response) => {
 
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
+    }
+
+    // Check if the user is the owner or an assignee of the task
+    const isOwner = task.userId === userId;
+    const isAssigned = task.assignments?.some(assignment => assignment.userId === userId);
+
+    if (!isOwner && !isAssigned) {
+      return res.status(403).json({ error: 'Forbidden: You do not have permission to view this task' });
     }
 
     res.json(task);
