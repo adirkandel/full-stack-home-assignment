@@ -8,42 +8,53 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
   const userId = req.userId;
   const { search, status } = req.query;
 
-  let tasks;
+  const whereClause: any = {
+    OR: [
+      { userId },
+      { assignments: { some: { userId } } }
+    ],
+    ...(status && { status: status as string }),
+  };
+
   if (search) {
-    const query = `SELECT * FROM Task WHERE userId = '${userId}' AND (title LIKE '%${search}%' OR description LIKE '%${search}%')`;
-    tasks = await prisma.$queryRawUnsafe(query);
-  } else {
-    tasks = await prisma.task.findMany({
-      where: {
-        userId,
-        ...(status && { status: status as string }),
+    whereClause.AND = [
+      {
+        OR: [
+          { title: { contains: search as string, mode: 'insensitive' } },
+          { description: { contains: search as string, mode: 'insensitive' } },
+        ],
       },
-    });
-
-    for (const task of tasks) {
-      const user = await prisma.user.findUnique({ where: { id: task.userId } });
-      (task as any).user = user;
-    }
-
-    for (const task of tasks) {
-      const assignments = await prisma.taskAssignment.findMany({
-        where: { taskId: task.id },
-      });
-      
-      for (const assignment of assignments) {
-        const assignee = await prisma.user.findUnique({
-          where: { id: assignment.userId },
-        });
-        (assignment as any).user = assignee;
-      }
-      
-      (task as any).assignments = assignments;
-    }
+    ];
   }
+
+  const tasks = await prisma.task.findMany({
+    where: whereClause,
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          name: true,
+        },
+      },
+      assignments: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
   res.json(tasks);
 };
-
 export const createTask = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
@@ -73,7 +84,21 @@ export const createTask = async (req: AuthRequest, res: Response) => {
 export const updateTask = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
     const { title, description, status, priority } = req.body;
+
+    // Verify task ownership before update
+    const existingTask = await prisma.task.findUnique({
+      where: { id },
+    });
+
+    if (!existingTask) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    if (existingTask.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not have permission to update this task' });
+    }
 
     const task = await prisma.task.update({
       where: { id },
@@ -95,6 +120,20 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
 export const deleteTask = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
+
+    // Verify task ownership before deletion
+     const existingTask = await prisma.task.findUnique({
+      where: { id },
+    });
+
+    if (!existingTask) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    if (existingTask.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this task' });
+    }
 
     await prisma.task.delete({
       where: { id },
@@ -110,6 +149,7 @@ export const deleteTask = async (req: AuthRequest, res: Response) => {
 export const getTaskById = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
     const task = await prisma.task.findUnique({
       where: { id },
@@ -156,10 +196,61 @@ export const getTaskById = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Task not found' });
     }
 
+    // Check if the user is the owner or an assignee of the task
+    const isOwner = task.userId === userId;
+    const isAssigned = task.assignments?.some(assignment => assignment.userId === userId);
+
+    if (!isOwner && !isAssigned) {
+      return res.status(403).json({ error: 'Forbidden: You do not have permission to view this task' });
+    }
+
     res.json(task);
   } catch (error) {
     console.error('Error fetching task:', error);
     res.status(500).json({ error: 'Failed to fetch task' });
   }
+};
+
+
+export const assignUserToTask = async (req: AuthRequest, res: Response) => {
+  const { taskId } = req.params;
+  const { userId: assigneeUserId } = req.body;
+  const ownerId = req.userId;
+
+  const task = await prisma.task.findUnique({ where: { id: taskId } });
+
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  if (task.userId !== ownerId) {
+    return res.status(403).json({ error: 'Only task owner can assign users' });
+  }
+
+  const assignment = await prisma.taskAssignment.create({
+    data: {
+      taskId,
+      userId: assigneeUserId,
+    },
+  });
+
+  res.status(201).json(assignment);
+};
+
+export const unassignUserFromTask = async (req: AuthRequest, res: Response) => {
+  const { taskId, userId } = req.params;
+  const ownerId = req.userId;
+
+  const task = await prisma.task.findUnique({ where: { id: taskId } });
+
+  if (!task || task.userId !== ownerId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  await prisma.taskAssignment.deleteMany({
+    where: { taskId, userId },
+  });
+
+  res.status(204).send();
 };
 

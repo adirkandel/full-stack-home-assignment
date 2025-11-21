@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { CommentForm } from './CommentForm';
 
 export const CommentList = ({ taskId }: { taskId: string }) => {
   const [comments, setComments] = useState<any[]>([]);
@@ -10,7 +11,7 @@ export const CommentList = ({ taskId }: { taskId: string }) => {
   }, [taskId]);
 
   const fetchComments = async () => {
-    const data = await api.get(`/comments?taskId=${taskId}`);
+    const data = await api.get<any[]>(`/comments?taskId=${taskId}`);
     setComments(data);
     setLoading(false);
   };
@@ -21,6 +22,7 @@ export const CommentList = ({ taskId }: { taskId: string }) => {
 
   return (
     <div className="space-y-4">
+      <CommentForm taskId={taskId} onCommentAdded={fetchComments} />
       {comments.map((comment: any) => (
         <div key={comment.id} className="border rounded p-3">
           <div className="flex items-center gap-2 mb-2">
@@ -38,6 +40,7 @@ export const CommentList = ({ taskId }: { taskId: string }) => {
         </div>
       ))}
     </div>
+    
   );
 };
 

@@ -33,9 +33,10 @@ export const register = async (req: AuthRequest, res: Response) => {
     },
   });
 
+
   const token = jwt.sign(
     { userId: user.id },
-    process.env.JWT_SECRET || 'fallback-secret',
+     process.env.JWT_SECRET!,   // validate that JWT_SECRET is defined
     { expiresIn: '7d' }
   );
 
@@ -109,3 +110,27 @@ export const getMe = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getUsers = async (req: AuthRequest, res: Response) => {
+  const { search } = req.query;
+
+  const users = await prisma.user.findMany({
+    where: search
+      ? {
+          OR: [
+            { name: { contains: search as string, mode: 'insensitive' } },
+            { username: { contains: search as string, mode: 'insensitive' } },
+            { email: { contains: search as string, mode: 'insensitive' } },
+          ],
+        }
+      : {},
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+    },
+    take: 10,
+  });
+
+  res.json(users);
+};
