@@ -1,11 +1,38 @@
+import { useState } from 'react';
 import { CommentList } from './CommentList';
+import { UserAutocomplete } from './UserAutocomplete';
+import { api } from '../services/api';
+import type { User, Task, TaskAssignment } from '../types';
 
 interface TaskViewProps {
-  task: any;
+  task: Task;
   onClose: () => void;
+  onUpdate?: () => void;
 }
 
-export const TaskView = ({ task, onClose }: TaskViewProps) => {
+export const TaskView = ({ task, onClose, onUpdate }: TaskViewProps) => {
+  const [assignments, setAssignments] = useState<TaskAssignment[]>(task.assignments || []);
+
+  const handleAssignUser = async (user: User) => {
+    try {
+      await api.post(`/tasks/${task.id}/assign`, { userId: user.id });
+      setAssignments([...assignments, { id: '', taskId: task.id, userId: user.id, user }]);
+      onUpdate?.();
+    } catch (error) {
+      console.error('Failed to assign user:', error);
+    }
+  };
+
+  const handleUnassignUser = async (userId: string) => {
+    try {
+      await api.delete(`/tasks/${task.id}/assign/${userId}`);
+      setAssignments(assignments.filter((a) => a.userId !== userId));
+      onUpdate?.();
+    } catch (error) {
+      console.error('Failed to unassign user:', error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -31,6 +58,24 @@ export const TaskView = ({ task, onClose }: TaskViewProps) => {
             <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded">
               {task.priority}
             </span>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="font-semibold mb-2">Assigned Users</h3>
+            <div className="space-y-2 mb-3">
+              {assignments.map((assignment) => (
+                <div key={assignment.userId} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                  <span>{assignment.user?.name || assignment.user?.username}</span>
+                  <button
+                    onClick={() => handleUnassignUser(assignment.userId)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+            <UserAutocomplete onSelect={handleAssignUser} placeholder="Assign user..." />
           </div>
 
           <div className="border-t pt-4">

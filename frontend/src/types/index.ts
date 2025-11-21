@@ -5,6 +5,14 @@ export interface User {
   name?: string;
 }
 
+
+export interface TaskAssignment {
+  id: string;
+  taskId: string;
+  userId: string;
+  user?: User;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -14,9 +22,9 @@ export interface Task {
   userId: string;
   createdAt: string;
   updatedAt: string;
-  user?: any;
-  assignments?: any[];
-  comments?: any[];
+  user?: User;
+  assignments?: TaskAssignment[];
+  comments?: Comment[];
 }
 
 export interface Comment {
@@ -25,8 +33,10 @@ export interface Comment {
   taskId: string;
   userId: string;
   createdAt: string;
-  user?: any;
+  user?: User;
 }
+
+
 
 export type ApiResponse = any;
 
