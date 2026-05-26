@@ -36,6 +36,8 @@ model Task {
   assignments TaskAssignment[]
   comments    Comment[]
   tags        TaskTag[]
+
+  @@index([userId, status])
 }
 
 model TaskAssignment {
