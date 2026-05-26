@@ -181,6 +181,7 @@ After seeding, you can login with:
 
 - Development: `npm run dev` (Vite dev server)
 - Build: `npm run build`
+- Test: `npm test`
 - Preview: `npm run preview`
 
 ## Database
