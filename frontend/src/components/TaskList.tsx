@@ -1,40 +1,59 @@
 import { useState } from 'react';
-import { useTasks } from '../hooks/useTasks';
+import { TASK_PRIORITIES, TASK_STATUSES } from '../types';
+import type { Task, TaskEditableFields, TaskPriority, TaskStatus, UpdateTaskInput } from '../types';
 
-export const TaskList = ({ filters }: any) => {
-  const { tasks, loading, deleteTask, updateTask } = useTasks(filters);
+const toTaskEditableFields = (task: Task): TaskEditableFields => ({
+  title: task.title,
+  description: task.description ?? '',
+  status: task.status,
+  priority: task.priority,
+});
+
+interface TaskListProps {
+  tasks: Task[];
+  loading: boolean;
+  updateTask: (id: string, taskData: UpdateTaskInput) => Promise<Task>;
+  deleteTask: (id: string) => Promise<void>;
+}
+
+export const TaskList = ({ tasks, loading, updateTask, deleteTask }: TaskListProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editFormData, setEditFormData] = useState<any>({});
+  const [editFormData, setEditFormData] = useState<TaskEditableFields | null>(null);
 
-  const handleEditClick = (task: any) => {
+  const handleEditClick = (task: Task) => {
     setEditingId(task.id);
-    setEditFormData({
-      title: task.title,
-      description: task.description || '',
-      status: task.status,
-      priority: task.priority,
-    });
+    setEditFormData(toTaskEditableFields(task));
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditFormData({});
+    setEditFormData(null);
   };
 
   const handleSaveEdit = async (taskId: string) => {
+    if (!editFormData) {
+      return;
+    }
+
     try {
       await updateTask(taskId, editFormData);
       setEditingId(null);
-      setEditFormData({});
+      setEditFormData(null);
     } catch (error) {
       console.error('Failed to update task:', error);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setEditFormData({
-      ...editFormData,
-      [field]: value,
+  const updateEditedTaskFields = (updatedFields: Partial<TaskEditableFields>) => {
+    setEditFormData((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        ...updatedFields,
+      };
     });
   };
 
@@ -44,12 +63,12 @@ export const TaskList = ({ filters }: any) => {
 
   return (
     <div className="space-y-4">
-      {tasks.map((task: any) => (
+      {tasks.map((task) => (
         <div
           key={task.id}
           className="border rounded-lg p-4 hover:shadow-md transition-shadow"
         >
-          {editingId === task.id ? (
+          {editingId === task.id && editFormData ? (
             // Edit mode
             <div className="space-y-4">
               <div>
@@ -57,7 +76,7 @@ export const TaskList = ({ filters }: any) => {
                 <input
                   type="text"
                   value={editFormData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  onChange={(e) => updateEditedTaskFields({ title: e.target.value })}
                   className="w-full border rounded px-3 py-2"
                 />
               </div>
@@ -65,7 +84,7 @@ export const TaskList = ({ filters }: any) => {
                 <label className="block text-sm font-medium mb-1">Description</label>
                 <textarea
                   value={editFormData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  onChange={(e) => updateEditedTaskFields({ description: e.target.value })}
                   className="w-full border rounded px-3 py-2"
                   rows={3}
                 />
@@ -75,24 +94,28 @@ export const TaskList = ({ filters }: any) => {
                   <label className="block text-sm font-medium mb-1">Status</label>
                   <select
                     value={editFormData.status}
-                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    onChange={(e) => updateEditedTaskFields({ status: e.target.value as TaskStatus })}
                     className="w-full border rounded px-3 py-2"
                   >
-                    <option value="TODO">TODO</option>
-                    <option value="IN_PROGRESS">IN_PROGRESS</option>
-                    <option value="DONE">DONE</option>
+                    {TASK_STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Priority</label>
                   <select
                     value={editFormData.priority}
-                    onChange={(e) => handleInputChange('priority', e.target.value)}
+                    onChange={(e) => updateEditedTaskFields({ priority: e.target.value as TaskPriority })}
                     className="w-full border rounded px-3 py-2"
                   >
-                    <option value="LOW">LOW</option>
-                    <option value="MEDIUM">MEDIUM</option>
-                    <option value="HIGH">HIGH</option>
+                    {TASK_PRIORITIES.map((priority) => (
+                      <option key={priority} value={priority}>
+                        {priority}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

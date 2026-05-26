@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../auth/useAuth';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +10,6 @@ export const Register = () => {
     name: '',
   });
   const { register } = useAuth();
-  const navigate = useNavigate();
 
   const handleChange = (e: any) => {
     setFormData({
@@ -22,7 +21,6 @@ export const Register = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     await register(formData);
-    navigate('/dashboard');
   };
 
   return (

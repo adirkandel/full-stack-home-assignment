@@ -1,21 +1,30 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
+import { TASK_PRIORITIES, TASK_PRIORITY, TASK_STATUSES, TASK_STATUS } from '../types';
+import type { TaskEditableFields, TaskPriority, TaskStatus } from '../types';
 
-export const TaskForm = ({ onSubmit, initialData }: any) => {
-  const [formData, setFormData] = useState({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    status: initialData?.status || 'TODO',
-    priority: initialData?.priority || 'MEDIUM',
+interface TaskFormProps {
+  onSubmit: (taskData: TaskEditableFields) => Promise<void> | void;
+}
+
+export const TaskForm = ({ onSubmit }: TaskFormProps) => {
+  const [formData, setFormData] = useState<TaskEditableFields>({
+    title: '',
+    description: '',
+    status: TASK_STATUS.Todo,
+    priority: TASK_PRIORITY.Medium,
   });
 
-  const handleChange = (e: any) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleFieldChange = <Field extends keyof TaskEditableFields>(
+    field: Field,
+    value: TaskEditableFields[Field],
+  ) => {
+    setFormData((current) => ({
+      ...current,
+      [field]: value,
+    }));
   };
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(formData);
   };
@@ -28,7 +37,7 @@ export const TaskForm = ({ onSubmit, initialData }: any) => {
           type="text"
           name="title"
           value={formData.title}
-          onChange={handleChange}
+          onChange={(e) => handleFieldChange('title', e.target.value)}
           className="w-full border rounded px-3 py-2"
         />
       </div>
@@ -37,7 +46,7 @@ export const TaskForm = ({ onSubmit, initialData }: any) => {
         <textarea
           name="description"
           value={formData.description}
-          onChange={handleChange}
+          onChange={(e) => handleFieldChange('description', e.target.value)}
           className="w-full border rounded px-3 py-2"
           rows={4}
         />
@@ -47,12 +56,14 @@ export const TaskForm = ({ onSubmit, initialData }: any) => {
         <select
           name="status"
           value={formData.status}
-          onChange={handleChange}
+          onChange={(e) => handleFieldChange('status', e.target.value as TaskStatus)}
           className="w-full border rounded px-3 py-2"
         >
-          <option value="TODO">TODO</option>
-          <option value="IN_PROGRESS">IN_PROGRESS</option>
-          <option value="DONE">DONE</option>
+          {TASK_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
         </select>
       </div>
       <div>
@@ -60,19 +71,21 @@ export const TaskForm = ({ onSubmit, initialData }: any) => {
         <select
           name="priority"
           value={formData.priority}
-          onChange={handleChange}
+          onChange={(e) => handleFieldChange('priority', e.target.value as TaskPriority)}
           className="w-full border rounded px-3 py-2"
         >
-          <option value="LOW">LOW</option>
-          <option value="MEDIUM">MEDIUM</option>
-          <option value="HIGH">HIGH</option>
+          {TASK_PRIORITIES.map((priority) => (
+            <option key={priority} value={priority}>
+              {priority}
+            </option>
+          ))}
         </select>
       </div>
       <button
         type="submit"
         className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
       >
-        {initialData ? 'Update Task' : 'Create Task'}
+        Create Task
       </button>
     </form>
   );

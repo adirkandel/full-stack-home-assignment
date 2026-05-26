@@ -3,7 +3,7 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { useAuth } from './hooks/useAuth';
+import { useAuth } from './auth/useAuth';
 
 function App() {
   const { user, loading } = useAuth();
