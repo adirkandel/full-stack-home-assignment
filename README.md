@@ -67,7 +67,7 @@ cp .env.example .env
 # Update .env with your configuration (optional, defaults are provided)
 # DATABASE_URL="postgresql://taskmanager:taskmanager123@localhost:5432/taskmanager?schema=public"
 # JWT_SECRET="your-secret-key-change-in-production"
-# PORT=5000
+# PORT=3000
 
 # Start PostgreSQL database with Docker and setup database (migrate + seed)
 npm run db:setup
@@ -97,7 +97,7 @@ npm run dev
 4. Run migrations
 5. Seed the database with sample data
 
-The backend server will run on `http://localhost:5000`
+The backend server will run on `http://localhost:3000`
 
 ### 3. Frontend Setup
 
@@ -113,7 +113,7 @@ npm install
 npm run dev
 ```
 
-The frontend will run on `http://localhost:3000`
+The frontend will run on `http://localhost:5173`
 
 ## Project Structure
 
