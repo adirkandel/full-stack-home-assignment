@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import type { Comment } from '../types';
 
 export const CommentList = ({ taskId }: { taskId: string }) => {
   const [comments, setComments] = useState<any[]>([]);
@@ -10,7 +11,7 @@ export const CommentList = ({ taskId }: { taskId: string }) => {
   }, [taskId]);
 
   const fetchComments = async () => {
-    const data = await api.get(`/comments?taskId=${taskId}`);
+    const data = await api.get<Comment[]>(`/comments?taskId=${taskId}`);
     setComments(data);
     setLoading(false);
   };

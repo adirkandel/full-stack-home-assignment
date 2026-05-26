@@ -4,15 +4,15 @@ import { TaskList } from '../components/TaskList';
 import { TaskForm } from '../components/TaskForm';
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
+import type { TaskEditableFields } from '../types';
 
 export const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
-  const [filters, setFilters] = useState({});
-  const { createTask } = useTasks();
+  const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleCreateTask = async (taskData: any) => {
+  const handleCreateTask = async (taskData: TaskEditableFields) => {
     await createTask(taskData);
     setShowForm(false);
   };
@@ -58,10 +58,14 @@ export const Dashboard = () => {
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Tasks</h2>
-          <TaskList filters={filters} />
+          <TaskList
+            tasks={tasks}
+            loading={loading}
+            updateTask={updateTask}
+            deleteTask={deleteTask}
+          />
         </div>
       </div>
     </div>
   );
 };
-
