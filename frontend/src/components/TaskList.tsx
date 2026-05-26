@@ -170,4 +170,3 @@ export const TaskList = ({ tasks, loading, updateTask, deleteTask }: TaskListPro
     </div>
   );
 };
-

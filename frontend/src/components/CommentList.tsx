@@ -41,4 +41,3 @@ export const CommentList = ({ taskId }: { taskId: string }) => {
     </div>
   );
 };
-

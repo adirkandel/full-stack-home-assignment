@@ -9,4 +9,3 @@ router.post('/', authenticate, createComment);
 router.delete('/:id', authenticate, deleteComment);
 
 export default router;
-
