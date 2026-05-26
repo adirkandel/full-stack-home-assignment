@@ -13,7 +13,12 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { userId: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { userId?: unknown };
+
+    if (typeof decoded.userId !== 'string' || decoded.userId.length === 0) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
     req.userId = decoded.userId;
     
     next();

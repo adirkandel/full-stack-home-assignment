@@ -25,7 +25,7 @@ export const useTasks = (filters?: TaskFilters) => {
   };
 
   const updateTask = async (id: string, taskData: UpdateTaskInput) => {
-    const updatedTask = await api.put<Task>(`/tasks/${id}`, taskData);
+    const updatedTask = await api.patch<Task>(`/tasks/${id}`, taskData);
     setTasks(tasks.map((task) => (task.id === id ? updatedTask : task)));
     return updatedTask;
   };
