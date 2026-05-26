@@ -1,16 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { TaskList } from '../components/TaskList';
 import { TaskForm } from '../components/TaskForm';
 import { useTasks } from '../hooks/useTasks';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../auth/useAuth';
 import type { TaskEditableFields } from '../types';
 
 export const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
   const { logout, user } = useAuth();
-  const navigate = useNavigate();
 
   const handleCreateTask = async (taskData: TaskEditableFields) => {
     await createTask(taskData);
@@ -19,7 +17,6 @@ export const Dashboard = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   return (
