@@ -56,11 +56,11 @@ export const api = {
     }
   },
 
-  async put<T = unknown>(endpoint: string, data: unknown): Promise<T> {
+  async patch<T = unknown>(endpoint: string, data: unknown): Promise<T> {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}${endpoint}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` }),

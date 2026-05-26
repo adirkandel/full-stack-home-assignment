@@ -152,7 +152,7 @@ full-stack-home-assignment/
 - `GET /api/tasks` - Get all tasks (with optional filters)
 - `GET /api/tasks/:id` - Get task by ID
 - `POST /api/tasks` - Create a new task
-- `PUT /api/tasks/:id` - Update a task
+- `PATCH /api/tasks/:id` - Update task fields
 - `DELETE /api/tasks/:id` - Delete a task
 
 ### Comments

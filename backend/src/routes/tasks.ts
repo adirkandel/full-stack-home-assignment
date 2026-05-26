@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/', authenticate, validateTaskListQuery, getTasks);
 router.get('/:id', authenticate, getTaskById);
 router.post('/', authenticate, requireJsonObjectBody, validateCreateTask, createTask);
-router.put('/:id', authenticate, requireJsonObjectBody, validateUpdateTask, updateTask);
+router.patch('/:id', authenticate, requireJsonObjectBody, validateUpdateTask, updateTask);
 router.delete('/:id', authenticate, deleteTask);
 
 export default router;
