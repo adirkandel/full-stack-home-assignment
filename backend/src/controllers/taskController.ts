@@ -21,7 +21,15 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
     });
 
     for (const task of tasks) {
-      const user = await prisma.user.findUnique({ where: { id: task.userId } });
+      const user = await prisma.user.findUnique({
+        where: { id: task.userId },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          name: true,
+        },
+      });
       (task as any).user = user;
     }
 
@@ -33,6 +41,12 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
       for (const assignment of assignments) {
         const assignee = await prisma.user.findUnique({
           where: { id: assignment.userId },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            name: true,
+          },
         });
         (assignment as any).user = assignee;
       }
