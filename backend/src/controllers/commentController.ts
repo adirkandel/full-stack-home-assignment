@@ -50,4 +50,3 @@ export const deleteComment = async (req: AuthRequest, res: Response) => {
 
   res.status(204).send();
 };
-

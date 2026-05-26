@@ -11,4 +11,3 @@ router.put('/:id', authenticate, updateTask);
 router.delete('/:id', authenticate, deleteTask);
 
 export default router;
-

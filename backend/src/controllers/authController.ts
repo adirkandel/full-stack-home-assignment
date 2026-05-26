@@ -108,4 +108,3 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch user' });
   }
 };
-
