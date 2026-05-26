@@ -13,10 +13,10 @@
     "db:setup": "npm run db:docker:up && sleep 5 && npm run db:generate && npm run db:migrate && npm run db:seed",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx prisma/seed.ts"
   },
   "prisma": {
-    "seed": "tsx src/db/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
