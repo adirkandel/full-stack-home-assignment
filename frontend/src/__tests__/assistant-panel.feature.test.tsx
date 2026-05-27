@@ -164,7 +164,7 @@ const apiResponseFor = async (input: RequestInfo | URL, init?: RequestInit) => {
                 ...message,
                 draft: {
                   ...message.draft,
-                  status: 'EXECUTED',
+                  status: 'EXECUTED' as const,
                   approvedDraft: body.approvedDraft,
                   executionResult,
                   decidedAt: new Date().toISOString(),
