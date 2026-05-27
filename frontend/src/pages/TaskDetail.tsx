@@ -11,7 +11,9 @@ import {
 } from 'lucide-react';
 import { TaskForm } from '../components/TaskForm';
 import { AssistantPanel } from '../components/AssistantPanel';
-import { api } from '../services/api';
+import { commentApi } from '../services/commentApi';
+import { taskApi } from '../services/taskApi';
+import { formatEnumLabel, formatFullDateTime } from '../utils/taskFormatting';
 import type { Comment, Task, TaskEditableFields } from '../types';
 
 export const TaskDetail = () => {
@@ -48,8 +50,8 @@ export const TaskDetail = () => {
 
     try {
       const [taskResponse, commentsResponse] = await Promise.all([
-        api.get<Task>(`/tasks/${taskId}`),
-        api.get<Comment[]>(`/comments?taskId=${encodeURIComponent(taskId)}`),
+        taskApi.getTask(taskId),
+        commentApi.listComments(taskId),
       ]);
 
       setTask(taskResponse);
@@ -74,7 +76,7 @@ export const TaskDetail = () => {
     setError(null);
 
     try {
-      const updatedTask = await api.patch<Task>(`/tasks/${taskId}`, fields);
+      const updatedTask = await taskApi.updateTask(taskId, fields);
       setTask(updatedTask);
       setEditing(false);
     } catch (saveError) {
@@ -95,10 +97,7 @@ export const TaskDetail = () => {
     setError(null);
 
     try {
-      const createdComment = await api.post<Comment>('/comments', {
-        taskId,
-        content: commentText.trim(),
-      });
+      const createdComment = await commentApi.createComment(taskId, commentText.trim());
       setComments((current) => [createdComment, ...current]);
       setCommentText('');
     } catch (commentError) {
@@ -113,7 +112,7 @@ export const TaskDetail = () => {
     setError(null);
 
     try {
-      await api.delete(`/comments/${commentId}`);
+      await commentApi.deleteComment(commentId);
       setComments((current) => current.filter((comment) => comment.id !== commentId));
     } catch (deleteError) {
       setError(messageForError(deleteError));
@@ -131,7 +130,7 @@ export const TaskDetail = () => {
     setError(null);
 
     try {
-      await api.delete(`/tasks/${taskId}`);
+      await taskApi.deleteTask(taskId);
       navigate('/dashboard');
     } catch (deleteError) {
       setError(messageForError(deleteError));
@@ -274,7 +273,7 @@ export const TaskDetail = () => {
                           <p className="text-sm font-bold text-zinc-950">
                             {comment.user?.name || comment.user?.username || 'Unknown user'}
                           </p>
-                          <p className="text-xs text-zinc-500">{formatDate(comment.createdAt)}</p>
+                          <p className="text-xs text-zinc-500">{formatFullDateTime(comment.createdAt)}</p>
                         </div>
                       </div>
                       <button
@@ -301,8 +300,8 @@ export const TaskDetail = () => {
             <dl className="mt-4 grid gap-4 text-sm">
               <Property label="Status" value={formatEnumLabel(task.status)} icon={CheckCircle2} />
               <Property label="Priority" value={formatEnumLabel(task.priority)} icon={Pencil} />
-              <Property label="Created" value={formatDate(task.createdAt)} icon={CalendarClock} />
-              <Property label="Updated" value={formatDate(task.updatedAt)} icon={CalendarClock} />
+              <Property label="Created" value={formatFullDateTime(task.createdAt)} icon={CalendarClock} />
+              <Property label="Updated" value={formatFullDateTime(task.updatedAt)} icon={CalendarClock} />
             </dl>
           </section>
 
@@ -372,22 +371,6 @@ const Property = ({ label, value, icon: Icon }: PropertyProps) => (
     </div>
   </div>
 );
-
-const formatEnumLabel = (value: string) =>
-  value
-    .toLowerCase()
-    .split('_')
-    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
-    .join(' ');
-
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
 
 const messageForError = (error: unknown) => {
   if (error instanceof Error) {

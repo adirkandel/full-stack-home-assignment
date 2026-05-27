@@ -19,10 +19,14 @@ import { AssistantPanel } from '../components/AssistantPanel';
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../auth/useAuth';
 import {
+  buildTaskStats,
+  formatEnumLabel,
+  formatShortDateTime,
+  priorityBadgeClass,
+} from '../utils/taskFormatting';
+import {
   TASK_PRIORITIES,
-  TASK_PRIORITY,
   TASK_STATUSES,
-  TASK_STATUS,
   type Task,
   type TaskEditableFields,
   type TaskFilters,
@@ -62,7 +66,7 @@ export const Dashboard = () => {
   );
 
   const { tasks, loading, error, createTask, updateTask, deleteTask, refetch } = useTasks(filters);
-  const stats = useMemo(() => buildStats(tasks), [tasks]);
+  const stats = useMemo(() => buildTaskStats(tasks), [tasks]);
   const hasFilters = Boolean(filters.search || filters.status || filters.priority);
 
   const setParam = (key: string, value?: string) => {
@@ -480,7 +484,7 @@ const TaskTable = ({ tasks, loading, onUpdate, onDelete }: TaskSurfaceProps) => 
                 <td className="px-4 py-4">
                   <PriorityBadge priority={task.priority} />
                 </td>
-                <td className="px-4 py-4 text-zinc-600">{formatDate(task.updatedAt)}</td>
+                <td className="px-4 py-4 text-zinc-600">{formatShortDateTime(task.updatedAt)}</td>
                 <td className="px-4 py-4">
                   <div className="flex justify-end gap-2">
                     <Link
@@ -508,14 +512,8 @@ const TaskTable = ({ tasks, loading, onUpdate, onDelete }: TaskSurfaceProps) => 
 };
 
 const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
-  const className = {
-    [TASK_PRIORITY.Low]: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-    [TASK_PRIORITY.Medium]: 'border-amber-200 bg-amber-50 text-amber-800',
-    [TASK_PRIORITY.High]: 'border-rose-200 bg-rose-50 text-rose-800',
-  }[priority];
-
   return (
-    <span className={`shrink-0 rounded border px-2 py-1 text-xs font-bold ${className}`}>
+    <span className={`shrink-0 rounded border px-2 py-1 text-xs font-bold ${priorityBadgeClass(priority)}`}>
       {formatEnumLabel(priority)}
     </span>
   );
@@ -537,13 +535,6 @@ const EmptyState = () => (
   </section>
 );
 
-const buildStats = (tasks: Task[]) => ({
-  open: tasks.filter((task) => task.status !== TASK_STATUS.Done).length,
-  inProgress: tasks.filter((task) => task.status === TASK_STATUS.InProgress).length,
-  done: tasks.filter((task) => task.status === TASK_STATUS.Done).length,
-  highPriority: tasks.filter((task) => task.priority === TASK_PRIORITY.High).length,
-});
-
 const parseDashboardView = (value: string | null): DashboardView =>
   value === 'table' ? 'table' : 'board';
 
@@ -552,21 +543,6 @@ const parseStatusFilter = (value: string | null): StatusFilter =>
 
 const parsePriorityFilter = (value: string | null): PriorityFilter =>
   value && TASK_PRIORITIES.includes(value as TaskPriority) ? (value as TaskPriority) : 'ALL';
-
-const formatEnumLabel = (value: string) =>
-  value
-    .toLowerCase()
-    .split('_')
-    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
-    .join(' ');
-
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
 
 const messageForError = (error: unknown) => {
   if (error instanceof Error) {
