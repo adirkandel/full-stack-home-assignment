@@ -201,6 +201,11 @@ After seeding, you can login with:
 - Build: `npm run build`
 - Test: `npm test`
 - Preview: `npm run preview`
+- Visual capture: `npm run visual:capture`
+- Visual baseline: `npm run visual:baseline`
+- Visual check: `npm run visual:check`
+
+The visual workflow starts a Vite server, mocks the API in the browser, and captures dashboard, task detail, and assistant screens under `output/playwright/`. Run `npx playwright install chromium` once if Chromium is not installed.
 
 ## Database
 
