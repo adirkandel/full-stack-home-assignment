@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
+import { signAuthToken } from '../utils/jwt';
 
 const prisma = new PrismaClient();
 
@@ -33,11 +33,7 @@ export const register = async (req: AuthRequest, res: Response) => {
     },
   });
 
-  const token = jwt.sign(
-    { userId: user.id },
-    process.env.JWT_SECRET || 'fallback-secret',
-    { expiresIn: '7d' }
-  );
+  const token = signAuthToken(user.id);
 
   res.status(201).json({
     user: {
@@ -67,11 +63,7 @@ export const login = async (req: AuthRequest, res: Response) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  const token = jwt.sign(
-    { userId: user.id },
-    process.env.JWT_SECRET || 'fallback-secret',
-    { expiresIn: '7d' }
-  );
+  const token = signAuthToken(user.id);
 
   res.json({
     user: {

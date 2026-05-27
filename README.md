@@ -64,10 +64,13 @@ npm install
 # Copy environment file
 cp .env.example .env
 
-# Update .env with your configuration (optional, defaults are provided)
+# Update .env with your configuration. JWT_SECRET is required in production.
 # DATABASE_URL="postgresql://taskmanager:taskmanager123@localhost:5432/taskmanager?schema=public"
-# JWT_SECRET="your-secret-key-change-in-production"
+# JWT_SECRET="<generate-a-long-random-secret>"
+# NODE_ENV=development
 # PORT=3000
+
+# Set NODE_ENV=production in deployed environments so unsafe JWT secrets fail startup.
 
 # Start PostgreSQL database with Docker and setup database (migrate + seed)
 npm run db:setup
