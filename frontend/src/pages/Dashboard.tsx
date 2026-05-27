@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Bot,
   CheckCircle2,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { TaskForm } from '../components/TaskForm';
 import { AssistantPanel } from '../components/AssistantPanel';
+import { useTaskFilters } from '../hooks/useTaskFilters';
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../auth/useAuth';
 import {
@@ -29,15 +30,12 @@ import {
   TASK_STATUSES,
   type Task,
   type TaskEditableFields,
-  type TaskFilters,
   type TaskPriority,
   type TaskStatus,
   type UpdateTaskInput,
 } from '../types';
 
 type DashboardView = 'board' | 'table';
-type StatusFilter = TaskStatus | 'ALL';
-type PriorityFilter = TaskPriority | 'ALL';
 
 const dashboardViews: Array<{ id: DashboardView; label: string; icon: typeof Columns3 }> = [
   { id: 'board', label: 'Board', icon: Columns3 },
@@ -45,41 +43,23 @@ const dashboardViews: Array<{ id: DashboardView; label: string; icon: typeof Col
 ];
 
 export const Dashboard = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [showForm, setShowForm] = useState(false);
   const [createBusy, setCreateBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const { logout, user } = useAuth();
-
-  const search = searchParams.get('search') ?? '';
-  const status = parseStatusFilter(searchParams.get('status'));
-  const priority = parsePriorityFilter(searchParams.get('priority'));
-  const view = parseDashboardView(searchParams.get('view'));
-
-  const filters = useMemo<TaskFilters>(
-    () => ({
-      search: search.trim() || undefined,
-      status: status === 'ALL' ? undefined : status,
-      priority: priority === 'ALL' ? undefined : priority,
-    }),
-    [priority, search, status],
-  );
+  const {
+    search,
+    status,
+    priority,
+    view,
+    filters,
+    hasFilters,
+    setFilterParam,
+    clearFilters,
+  } = useTaskFilters();
 
   const { tasks, loading, error, createTask, updateTask, deleteTask, refetch } = useTasks(filters);
   const stats = useMemo(() => buildTaskStats(tasks), [tasks]);
-  const hasFilters = Boolean(filters.search || filters.status || filters.priority);
-
-  const setParam = (key: string, value?: string) => {
-    const nextParams = new URLSearchParams(searchParams);
-
-    if (!value || value === 'ALL') {
-      nextParams.delete(key);
-    } else {
-      nextParams.set(key, value);
-    }
-
-    setSearchParams(nextParams);
-  };
 
   const handleCreateTask = async (taskData: TaskEditableFields) => {
     setCreateBusy(true);
@@ -169,7 +149,7 @@ export const Dashboard = () => {
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setParam('view', item.id)}
+                  onClick={() => setFilterParam('view', item.id)}
                   aria-pressed={selected}
                   className={`inline-flex items-center gap-2 rounded border px-3 py-2 text-sm font-semibold transition ${
                     selected
@@ -202,7 +182,7 @@ export const Dashboard = () => {
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden="true" />
                 <input
                   value={search}
-                  onChange={(event) => setParam('search', event.target.value)}
+                  onChange={(event) => setFilterParam('search', event.target.value)}
                   placeholder="Search task titles or descriptions"
                   className="w-full rounded border border-zinc-300 py-2 pl-9 pr-3 text-sm font-normal focus:border-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-100"
                 />
@@ -214,14 +194,14 @@ export const Dashboard = () => {
               allLabel="All statuses"
               value={status}
               values={['ALL', ...TASK_STATUSES]}
-              onChange={(value) => setParam('status', value)}
+              onChange={(value) => setFilterParam('status', value)}
             />
             <SelectFilter
               label="Priority"
               allLabel="All priorities"
               value={priority}
               values={['ALL', ...TASK_PRIORITIES]}
-              onChange={(value) => setParam('priority', value)}
+              onChange={(value) => setFilterParam('priority', value)}
             />
           </div>
 
@@ -232,7 +212,7 @@ export const Dashboard = () => {
               </p>
               <button
                 type="button"
-                onClick={() => setSearchParams(view === 'board' ? {} : { view })}
+                onClick={clearFilters}
                 className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
               >
                 Clear filters
@@ -534,15 +514,6 @@ const EmptyState = () => (
     </p>
   </section>
 );
-
-const parseDashboardView = (value: string | null): DashboardView =>
-  value === 'table' ? 'table' : 'board';
-
-const parseStatusFilter = (value: string | null): StatusFilter =>
-  value && TASK_STATUSES.includes(value as TaskStatus) ? (value as TaskStatus) : 'ALL';
-
-const parsePriorityFilter = (value: string | null): PriorityFilter =>
-  value && TASK_PRIORITIES.includes(value as TaskPriority) ? (value as TaskPriority) : 'ALL';
 
 const messageForError = (error: unknown) => {
   if (error instanceof Error) {
