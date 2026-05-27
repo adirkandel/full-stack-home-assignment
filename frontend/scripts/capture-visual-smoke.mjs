@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -391,6 +391,11 @@ async function launchBrowser() {
 
 function stopServer(child) {
   if (!child || child.killed) {
+    return;
+  }
+
+  if (process.platform === 'win32' && child.pid) {
+    spawnSync('taskkill', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' });
     return;
   }
 
