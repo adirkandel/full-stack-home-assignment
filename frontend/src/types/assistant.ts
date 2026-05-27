@@ -57,6 +57,7 @@ export interface AssistantExecutionResult {
     type: AssistantDraftOperation['type'];
     ok: boolean;
     entityId?: string;
+    taskId?: string;
     error?: string;
   }>;
 }

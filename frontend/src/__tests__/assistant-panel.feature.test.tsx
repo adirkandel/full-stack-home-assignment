@@ -1,5 +1,6 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssistantPanel } from '../components/AssistantPanel';
 import type { AssistantChat, AssistantChatListItem, AssistantDraftShape } from '../types';
@@ -60,7 +61,11 @@ describe('Feature: assistant panel draft workflow', () => {
 
   it('opens a fresh chat, renders an editable draft, and executes the approved draft', async () => {
     const onTasksChanged = vi.fn();
-    render(<AssistantPanel onTasksChanged={onTasksChanged} />);
+    render(
+      <MemoryRouter>
+        <AssistantPanel onTasksChanged={onTasksChanged} />
+      </MemoryRouter>,
+    );
 
     await actor.click(screen.getByRole('button', { name: /open task assistant/i }));
 
@@ -82,6 +87,8 @@ describe('Feature: assistant panel draft workflow', () => {
       expect(onTasksChanged).toHaveBeenCalledTimes(1);
     });
     expect(screen.getByText(/done\. i applied the approved changes/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /done\. i applied the approved changes\. open created task/i }))
+      .toHaveAttribute('href', '/tasks/task-1');
   });
 });
 
@@ -151,6 +158,7 @@ const apiResponseFor = async (input: RequestInfo | URL, init?: RequestInit) => {
           type: 'create_task' as const,
           ok: true,
           entityId: 'task-1',
+          taskId: 'task-1',
         },
       ],
     };
@@ -178,6 +186,11 @@ const apiResponseFor = async (input: RequestInfo | URL, init?: RequestInit) => {
           sequence: 3,
           role: 'ASSISTANT',
           content: 'Done. I applied the approved changes.',
+          metadata: {
+            draftId: 'draft-1',
+            action: 'executed',
+            executionResult,
+          },
           createdAt: new Date().toISOString(),
         },
       ],
