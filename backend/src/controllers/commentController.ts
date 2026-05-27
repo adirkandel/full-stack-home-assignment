@@ -1,52 +1,79 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '../db/prisma';
+import { commentWithUserInclude, findCommentForTaskOwner, taskExistsForUser } from '../db/taskQueries';
 
 export const createComment = async (req: AuthRequest, res: Response) => {
-  const userId = req.userId;
-  const { taskId, content } = req.body;
+  try {
+    const userId = req.userId!;
+    const { taskId, content } = req.body;
 
-  const comment = await prisma.comment.create({
-    data: {
-      content,
-      taskId,
-      userId: userId!,
-    },
-  });
+    if (!(await taskExistsForUser(prisma, userId, taskId))) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
 
-  res.status(201).json(comment);
+    const comment = await prisma.comment.create({
+      data: {
+        content,
+        taskId,
+        userId,
+      },
+      include: commentWithUserInclude,
+    });
+
+    res.status(201).json(comment);
+  } catch (error) {
+    console.error('Error creating comment:', error);
+    res.status(500).json({ error: 'Failed to create comment' });
+  }
 };
 
 export const getComments = async (req: AuthRequest, res: Response) => {
-  const { taskId } = req.query;
+  try {
+    const userId = req.userId!;
+    const { taskId } = req.query;
 
-  const comments = await prisma.comment.findMany({
-    where: {
-      taskId: taskId as string,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
+    const taskIdString = taskId as string;
 
-  for (const comment of comments) {
-    const user = await prisma.user.findUnique({
-      where: { id: comment.userId },
+    if (!(await taskExistsForUser(prisma, userId, taskIdString))) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const comments = await prisma.comment.findMany({
+      where: {
+        taskId: taskIdString,
+      },
+      include: commentWithUserInclude,
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
-    (comment as any).user = user;
-  }
 
-  res.json(comments);
+    res.json(comments);
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
 };
 
 export const deleteComment = async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  try {
+    const userId = req.userId!;
+    const { id } = req.params;
 
-  await prisma.comment.delete({
-    where: { id },
-  });
+    const comment = await findCommentForTaskOwner(prisma, userId, id);
 
-  res.status(204).send();
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    await prisma.comment.delete({
+      where: { id },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    res.status(500).json({ error: 'Failed to delete comment' });
+  }
 };

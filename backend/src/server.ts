@@ -4,12 +4,14 @@ import { env } from './env';
 import authRoutes from './routes/auth';
 import taskRoutes from './routes/tasks';
 import commentRoutes from './routes/comments';
+import { jsonBodyErrorHandler, jsonBodyParser } from './middleware/requestBody';
 
 const app = express();
 const PORT = env.port;
 
 app.use(cors());
-app.use(express.json());
+app.use(jsonBodyParser);
+app.use(jsonBodyErrorHandler);
 
 // Routes
 app.use('/api/auth', authRoutes);
