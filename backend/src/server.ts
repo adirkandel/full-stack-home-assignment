@@ -1,14 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import { env } from './env';
 import authRoutes from './routes/auth';
 import taskRoutes from './routes/tasks';
 import commentRoutes from './routes/comments';
 
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = env.port;
 
 app.use(cors());
 app.use(express.json());
