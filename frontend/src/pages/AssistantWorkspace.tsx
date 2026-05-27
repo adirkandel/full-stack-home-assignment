@@ -1,11 +1,11 @@
-import { useEffect, useRef, type FormEvent } from 'react';
+import { useEffect, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Bot, MessageSquarePlus, Send } from 'lucide-react';
-import { ChatHistory, MessageBubble, WelcomeMessage } from '../components/AssistantPanel';
+import { AssistantConversation } from '../components/assistant/AssistantConversation';
+import { ChatHistory } from '../components/assistant/ChatHistory';
 import { useAssistantChat } from '../hooks/useAssistantChat';
 
 export const AssistantWorkspace = () => {
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const {
     chats,
     chat,
@@ -26,10 +26,6 @@ export const AssistantWorkspace = () => {
   useEffect(() => {
     void loadInitialChat();
   }, [loadInitialChat]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [chat?.messages.length, sending]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -85,38 +81,16 @@ export const AssistantWorkspace = () => {
             )}
           </header>
 
-          <div
-            role="log"
-            aria-live="polite"
-            aria-relevant="additions text"
-            aria-busy={loading || sending}
+          <AssistantConversation
+            chat={chat}
+            loading={loading}
+            sending={sending}
             className="min-h-0 flex-1 overflow-y-auto bg-zinc-50 px-4 py-4"
-          >
-            {loading && (
-              <div role="status" className="text-sm text-zinc-600">
-                Loading assistant...
-              </div>
-            )}
-
-            {!loading && (!chat || chat.messages.length === 0) && <WelcomeMessage />}
-
-            {!loading && chat?.messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                onExecuted={handleDraftExecuted}
-                onDiscarded={handleDraftDiscarded}
-              />
-            ))}
-
-            {sending && (
-              <div role="status" className="mt-3 max-w-[80%] rounded-lg bg-white px-4 py-3 text-sm text-zinc-600 shadow-sm">
-                Drafting a careful answer...
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
+            loadingClassName="text-sm text-zinc-600"
+            sendingClassName="mt-3 max-w-[80%] rounded-lg bg-white px-4 py-3 text-sm text-zinc-600 shadow-sm"
+            onExecuted={handleDraftExecuted}
+            onDiscarded={handleDraftDiscarded}
+          />
 
           {error && (
             <div role="alert" className="border-t border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700">
