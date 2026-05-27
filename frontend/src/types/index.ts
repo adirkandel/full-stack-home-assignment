@@ -30,6 +30,7 @@ export const TASK_PRIORITIES: TaskPriority[] = Object.values(TASK_PRIORITY);
 export type TaskFilters = {
   search?: string;
   status?: TaskStatus;
+  priority?: TaskPriority;
 };
 
 export interface TaskEditableFields {

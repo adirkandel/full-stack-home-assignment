@@ -149,10 +149,11 @@ full-stack-home-assignment/
 
 - `POST /api/auth/register` - Register a new user
 - `POST /api/auth/login` - Login user
+- `GET /api/auth/me` - Get the authenticated user from the current token
 
 ### Tasks
 
-- `GET /api/tasks` - Get all tasks (with optional filters)
+- `GET /api/tasks` - Get all tasks (optional `search`, `status`, and `priority` filters)
 - `GET /api/tasks/:id` - Get task by ID
 - `POST /api/tasks` - Create a new task
 - `PATCH /api/tasks/:id` - Update task fields
@@ -163,6 +164,20 @@ full-stack-home-assignment/
 - `GET /api/comments?taskId=:id` - Get comments for a task
 - `POST /api/comments` - Create a comment
 - `DELETE /api/comments/:id` - Delete a comment
+
+### Assistant
+
+- `GET /api/assistant/chats` - List assistant chats
+- `POST /api/assistant/chats` - Create a new assistant chat
+- `GET /api/assistant/chats/:chatId` - Get chat messages and drafts
+- `POST /api/assistant/chats/:chatId/messages` - Send a user message
+- `PATCH /api/assistant/drafts/:draftId` - Execute or discard a pending draft
+
+## UI Routes
+
+- `/dashboard` - Metrics, URL-backed search/status/priority filters, board view, and table view
+- `/tasks/:taskId` - Task detail, edit form, comments, assignments, and delete flow
+- `/assistant` - Full assistant workspace with chat history and draft review
 
 ## Default Test Users
 
