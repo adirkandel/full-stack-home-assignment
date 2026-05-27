@@ -1,29 +1,8 @@
 import { Response } from 'express';
-import { Prisma, PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { isString } from '../middleware/validation';
-
-const prisma = new PrismaClient();
-
-const publicUserSelect = {
-  id: true,
-  email: true,
-  username: true,
-  name: true,
-} as const;
-
-const taskListInclude = {
-  assignments: {
-    include: {
-      user: {
-        select: publicUserSelect,
-      },
-    },
-  },
-} as const;
-
-const isRecordNotFoundError = (error: unknown) =>
-  error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025';
+import { isRecordNotFoundError, prisma } from '../db/prisma';
+import { taskDetailInclude, taskListInclude } from '../db/taskQueries';
 
 export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
@@ -138,25 +117,7 @@ export const getTaskById = async (req: AuthRequest, res: Response) => {
         id,
         userId,
       },
-      include: {
-        assignments: {
-          include: {
-            user: {
-              select: publicUserSelect,
-            },
-          },
-        },
-        comments: {
-          include: {
-            user: {
-              select: publicUserSelect,
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-      },
+      include: taskDetailInclude,
     });
 
     if (!task) {

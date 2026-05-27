@@ -1,10 +1,9 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { signAuthToken } from '../utils/jwt';
-
-const prisma = new PrismaClient();
+import { prisma } from '../db/prisma';
+import { publicUserSelect, toPublicUser } from '../db/selects';
 
 export const register = async (req: AuthRequest, res: Response) => {
   try {
@@ -37,12 +36,7 @@ export const register = async (req: AuthRequest, res: Response) => {
     const token = signAuthToken(user.id);
 
     res.status(201).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-      },
+      user: toPublicUser(user),
       token,
     });
   } catch (error) {
@@ -72,12 +66,7 @@ export const login = async (req: AuthRequest, res: Response) => {
     const token = signAuthToken(user.id);
 
     res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-      },
+      user: toPublicUser(user),
       token,
     });
   } catch (error) {
@@ -92,12 +81,7 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        name: true,
-      },
+      select: publicUserSelect,
     });
 
     if (!user) {

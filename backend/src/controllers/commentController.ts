@@ -1,32 +1,14 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
-
-const prisma = new PrismaClient();
-
-const publicUserSelect = {
-  id: true,
-  email: true,
-  username: true,
-  name: true,
-} as const;
+import { prisma } from '../db/prisma';
+import { commentWithUserInclude, findCommentForTaskOwner, taskExistsForUser } from '../db/taskQueries';
 
 export const createComment = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
     const { taskId, content } = req.body;
 
-    const task = await prisma.task.findFirst({
-      where: {
-        id: taskId,
-        userId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!task) {
+    if (!(await taskExistsForUser(prisma, userId, taskId))) {
       return res.status(404).json({ error: 'Task not found' });
     }
 
@@ -36,11 +18,7 @@ export const createComment = async (req: AuthRequest, res: Response) => {
         taskId,
         userId,
       },
-      include: {
-        user: {
-          select: publicUserSelect,
-        },
-      },
+      include: commentWithUserInclude,
     });
 
     res.status(201).json(comment);
@@ -55,29 +33,17 @@ export const getComments = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const { taskId } = req.query;
 
-    const task = await prisma.task.findFirst({
-      where: {
-        id: taskId as string,
-        userId,
-      },
-      select: {
-        id: true,
-      },
-    });
+    const taskIdString = taskId as string;
 
-    if (!task) {
+    if (!(await taskExistsForUser(prisma, userId, taskIdString))) {
       return res.status(404).json({ error: 'Task not found' });
     }
 
     const comments = await prisma.comment.findMany({
       where: {
-        taskId: taskId as string,
+        taskId: taskIdString,
       },
-      include: {
-        user: {
-          select: publicUserSelect,
-        },
-      },
+      include: commentWithUserInclude,
       orderBy: {
         createdAt: 'desc',
       },
@@ -95,17 +61,7 @@ export const deleteComment = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const { id } = req.params;
 
-    const comment = await prisma.comment.findFirst({
-      where: {
-        id,
-        task: {
-          userId,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
+    const comment = await findCommentForTaskOwner(prisma, userId, id);
 
     if (!comment) {
       return res.status(404).json({ error: 'Comment not found' });
